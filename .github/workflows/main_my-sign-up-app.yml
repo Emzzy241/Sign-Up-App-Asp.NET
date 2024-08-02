@@ -1,67 +1,44 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.Net Core app to Azure Web App - My-Sign-up-App
+name: Build and deploy ASP.Net Core app to Azure Web App
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '6.0.x'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x' # Updated to your .NET version
 
-      - name: Restore dependencies
-        run: dotnet restore Sign-up.Solution/Sign-up/Sign-up.csproj
+    - name: Install dependencies
+      run: dotnet restore Sign-up.Solution/Sign-up/Sign-up.csproj
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release Sign-up.Solution/Sign-up/Sign-up.csproj
+    - name: Build
+      run: dotnet build Sign-up.Solution/Sign-up/Sign-up.csproj --configuration Release --no-restore
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{github.workspace}}/myapp Sign-up.Solution/Sign-up/Sign-up.csproj
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: .net-app
-          path: ${{github.workspace}}/myapp
+    - name: Publish
+      run: dotnet publish Sign-up.Solution/Sign-up/Sign-up.csproj -c Release -o ${{ github.workspace }}/publish
 
   deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write # This is required for requesting the JWT
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: .net-app
+    - uses: actions/checkout@v2
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4CB1F0C207D44BBBA51E9279A75FFFCF }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1E7F671D347E455ABEED7CBC1E13BD3C }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_828BC19AE16F4D77BD60A9BBC1B932EA }}
-
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'My-Sign-up-App'
-          slot-name: 'Production'
-          package: ${{github.workspace}}/myapp
+    - name: 'Deploy to Azure Web App'
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'My-Sign-up-App'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: ${{ github.workspace }}/publish
