@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - My-Sign-up-App
 
 on:
@@ -22,13 +19,18 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Display project directory structure
-        run: dir /s/b
+        run: Get-ChildItem -Recurse
 
       - name: Restore dependencies
         run: dotnet restore Sign-up.Solution/Sign-up/Sign-up.csproj
 
       - name: Build with dotnet
         run: dotnet build --configuration Release Sign-up.Solution/Sign-up/Sign-up.csproj
+
+      - name: Log build output
+        run: |
+          echo Build output:
+          Get-ChildItem -Path Sign-up.Solution/Sign-up/bin/Release/net6.0/*
 
       - name: Publish with dotnet
         run: dotnet publish -c Release -o ${{github.workspace}}/myapp Sign-up.Solution/Sign-up/Sign-up.csproj
