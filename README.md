@@ -36,6 +36,11 @@
     Replace `[YOUR-USERNAME-HERE]` and `[YOUR-PASSWORD-HERE]` with your actual MySQL username and password.
 
 4. **Build and Run the Application**:
+    - To Install all Packages used and Migrations, run the command:
+     ```sh
+      dotnet restore
+      ```
+
     - If you're not interested in seeing the build messages, run the following command to build and run the application:
       ```sh
       dotnet run
