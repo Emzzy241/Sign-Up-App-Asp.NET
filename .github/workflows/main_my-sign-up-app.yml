@@ -21,17 +21,20 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
+      - name: Restore dependencies
+        run: dotnet restore Sign-up.Solution/Sign-up/Sign-up.csproj
+
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release Sign-up.Solution/Sign-up/Sign-up.csproj
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish -c Release -o ${{github.workspace}}/myapp Sign-up.Solution/Sign-up/Sign-up.csproj
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{github.workspace}}/myapp
 
   deploy:
     runs-on: windows-latest
@@ -40,14 +43,14 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write # This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -61,5 +64,4 @@ jobs:
         with:
           app-name: 'My-Sign-up-App'
           slot-name: 'Production'
-          package: .
-          
+          package: ${{github.workspace}}/myapp
